@@ -1,0 +1,6 @@
+ASCII is a primitive but beautiful art form first developed by the Sumerians in 4000BCE. It is created by printing characters to your terminal so as to recreate the contours of a source image.
+in this project we are converting images into ascii art using a programming language(python is used by me for this project).NUMPY ,OPENCV AND PILLOW have been used in this project.
+additional task-converting the image into pencil sketch.
+resources used- https://python.plainenglish.io/convert-a-photo-to-pencil-sketch-using-python-in-12-lines-of-code-4346426256d4
+https://stackoverflow.com/questions/64795711/removing-border-from-the-image(use for removing borders)
+my learnings- i have learned image processing in python and conversion of image into sketch using opencv,numpy and pillow.
