@@ -1,0 +1,96 @@
+from msilib.schema import Font
+import cv2
+import numpy as np
+from PIL import Image, ImageDraw, ImageOps, ImageFont, ImageChops
+
+# Characters used for Mapping to Pixels
+Character = {
+    "ascii_char" : "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1{}[]?-_+~<>i!lI;:,\"^`'. "
+}
+#here I have defined a function trim to remove the excessive borders from my image 
+
+
+
+# Making Background Black or White
+#bg_code = min(0,255) 
+# you can change the background  from white to black by replacing max with min
+background_colour = max(0,255)
+
+
+# Getting the character List, Font and Scaling characters for square Pixels
+font = ImageFont.truetype("D:\coding2.0\week1\IMG-20180101-WA0001.jpg", size=20)
+scale = 2
+char_list = Character["ascii_char"]
+
+
+num_chars = len(char_list)
+num_cols = 300  
+#you can vary this number after some iterations I find this most suitable and also in grayscale
+#format this is standard value for number of columns and for number of rows it is 210
+
+
+#sketch image
+import cv2
+img = cv2.imread("D:\coding2.0\week1\IMG-20180101-WA0001.jpg")
+grey_filter = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+invert = cv2.bitwise_not(grey_filter)
+blur =  cv2.GaussianBlur(invert, (81,81), 0)
+invertedblur = cv2.bitwise_not(blur)
+
+sketch_filter = cv2.divide(grey_filter,invertedblur, scale = 256.0)
+cv2.imwrite("sketchoutput.jpg",sketch_filter)
+
+
+# Extracting height and width from Image
+height, width = sketch_filter.shape
+
+# Defining height and width of each cell==pixel
+pix_width = width / num_cols
+pix_height = scale * pix_width
+num_rows = int(height / pix_height)
+
+# Calculating Height and Width of the output Image
+char_width = 12
+char_height = 4*(char_width/3)
+char_height = int(char_height)
+output_width = char_width * num_cols
+output_height = scale * char_height * num_rows
+output_height = int(output_height)
+
+# Making a new Image using PIL
+output_image = Image.new("L", (output_width, output_height), background_colour)
+draw = ImageDraw.Draw(output_image)
+
+# Mapping the Characters
+for row in range(num_rows):
+    min_h = min(int((row + 1) * scale * pix_width), height)
+    row_pix = int(row * scale * pix_width)
+
+    # lst = [i for i in range(5)] => We can make strings/lists/tuples in this way => lst = [0, 1, 2, 3, 4]
+    # lst[first:last] gives us a sublist from the first index to the last index excluding the last index => lst[1:4]==[1, 2, 3]
+    line = "".join([char_list[
+        min(int(
+            np.mean(sketch_filter[row_pix:min_h, int(column*pix_width)
+                    :min(int((column + 1) * pix_width), width)]) / 256 * num_chars
+        ), num_chars - 1)]
+        for column in range(num_cols)]) + "\n"
+
+    # Draw string at a given position (x,y)
+    draw.text((0, row * char_height), line, fill=255-background_colour, font=font)
+
+# Inverting Image and removing excess borders
+if background_colour == 0:
+   out_image = ImageOps.invert(output_image)    
+elif background_colour == 255:
+    pass
+#cropping functio
+def trim(im):
+    bg = Image.new(im.mode, im.size, im.getpixel((0,0)))
+    diff = ImageChops.difference(im, bg)
+    diff = ImageChops.add(diff, diff, 2.0, -100)
+    bbox = diff.getbbox()
+    if bbox:
+        return im.crop(bbox)
+# Saving the new Image
+cropped_image = trim(output_image)
+cropped_image.save("final_output.jpg")
